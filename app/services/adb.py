@@ -74,3 +74,38 @@ def select_netflix_profile(profile_index: int, pin: str | None = None) -> str:
     time.sleep(2)  # 等待進入首頁
     return f"✓ 已選擇第 {profile_index} 個 profile"
 
+
+def select_youtube_profile(profile_index: int) -> str:
+    """
+    選擇 YouTube 帳號
+    
+    YouTube TV 帳號切換流程：
+    1. 打開 YouTube 後等待載入
+    2. 進入帳號選擇畫面
+    3. 用左右鍵選擇帳號
+    4. 按確認
+    """
+    time.sleep(3)  # 等待 YouTube 載入
+    
+    # 移動到左側欄的帳號圖標（通常在最下方）
+    press_key(KEY_CODES["left"])
+    time.sleep(0.3)
+    
+    # 按多次 down 移動到帳號圖標
+    for _ in range(8):
+        press_key(KEY_CODES["down"])
+        time.sleep(0.2)
+    
+    # 選擇進入帳號切換
+    press_key(KEY_CODES["ok"])
+    time.sleep(1)
+    
+    # 選擇正確的帳號 (左右排列，profile_index 從 1 開始)
+    for _ in range(profile_index - 1):
+        press_key(KEY_CODES["right"])
+        time.sleep(0.3)
+    
+    press_key(KEY_CODES["ok"])
+    time.sleep(2)
+    
+    return f"✓ 已選擇第 {profile_index} 個 YouTube 帳號"

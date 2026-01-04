@@ -41,15 +41,15 @@ async def process_command(text: str, user_profile: dict | None = None) -> tuple[
     Returns:
         tuple of (message, tool_results)
     """
-    from app.services.adb import select_netflix_profile
-    from app.services.tv_tools import netflix_launch
+    from app.services.adb import select_netflix_profile, select_youtube_profile
+    from app.services.tv_tools import netflix_launch, youtube_launch
     
     agent = create_agent()
     
     # Modify system prompt if user has profile
     system_content = SYSTEM_PROMPT
     if user_profile:
-        system_content += f"\n\n用戶的 Netflix profile: 第 {user_profile['netflix_profile_index']} 個"
+        system_content += f"\n\n用戶的設定: Netflix 第 {user_profile['netflix_profile_index']} 個, YouTube 第 {user_profile.get('youtube_profile_index', 1)} 個"
     
     messages = [
         SystemMessage(content=system_content),
@@ -75,6 +75,19 @@ async def process_command(text: str, user_profile: dict | None = None) -> tuple[
                     "tool": tool_name,
                     "args": tool_args,
                     "result": f"✓ 已啟動 Netflix 並 {profile_result}"
+                })
+                continue
+            
+            # Special handling for youtube_launch with user profile
+            if tool_name == "youtube_launch" and user_profile and user_profile.get("youtube_profile_index", 1) > 1:
+                youtube_launch.invoke({})
+                profile_result = select_youtube_profile(
+                    user_profile["youtube_profile_index"]
+                )
+                tool_results.append({
+                    "tool": tool_name,
+                    "args": tool_args,
+                    "result": f"✓ 已啟動 YouTube 並 {profile_result}"
                 })
                 continue
             

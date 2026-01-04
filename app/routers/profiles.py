@@ -19,7 +19,7 @@ async def list_profiles():
         raise HTTPException(status_code=503, detail="Database not connected")
     
     async with pool.acquire() as conn:
-        rows = await conn.fetch("SELECT user_id, netflix_profile_index, netflix_pin FROM user_profiles")
+        rows = await conn.fetch("SELECT user_id, netflix_profile_index, netflix_pin, youtube_profile_index FROM user_profiles")
         return [dict(row) for row in rows]
 
 
@@ -43,10 +43,10 @@ async def create_profile(profile: ProfileCreate):
         try:
             await conn.execute(
                 """
-                INSERT INTO user_profiles (user_id, netflix_profile_index, netflix_pin)
-                VALUES ($1, $2, $3)
+                INSERT INTO user_profiles (user_id, netflix_profile_index, netflix_pin, youtube_profile_index)
+                VALUES ($1, $2, $3, $4)
                 """,
-                profile.user_id, profile.netflix_profile_index, profile.netflix_pin
+                profile.user_id, profile.netflix_profile_index, profile.netflix_pin, profile.youtube_profile_index
             )
             return profile
         except asyncpg.UniqueViolationError:
@@ -64,10 +64,10 @@ async def update_profile(user_id: str, profile: ProfileCreate):
         result = await conn.execute(
             """
             UPDATE user_profiles 
-            SET netflix_profile_index = $2, netflix_pin = $3, updated_at = NOW()
+            SET netflix_profile_index = $2, netflix_pin = $3, youtube_profile_index = $4, updated_at = NOW()
             WHERE user_id = $1
             """,
-            user_id, profile.netflix_profile_index, profile.netflix_pin
+            user_id, profile.netflix_profile_index, profile.netflix_pin, profile.youtube_profile_index
         )
         if result == "UPDATE 0":
             raise HTTPException(status_code=404, detail=f"Profile '{user_id}' not found")
