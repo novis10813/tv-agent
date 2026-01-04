@@ -41,8 +41,11 @@ async def process_command(text: str, user_profile: dict | None = None) -> tuple[
     Returns:
         tuple of (message, tool_results)
     """
-    from app.services.adb import select_netflix_profile, select_youtube_profile
+    from app.services.adb import select_netflix_profile, select_youtube_profile, ensure_connection
     from app.services.tv_tools import netflix_launch, youtube_launch
+    
+    # 確保 ADB 連線
+    ensure_connection()
     
     agent = create_agent()
     
@@ -79,15 +82,50 @@ async def process_command(text: str, user_profile: dict | None = None) -> tuple[
                 continue
             
             # Special handling for youtube_launch with user profile
-            if tool_name == "youtube_launch" and user_profile and user_profile.get("youtube_profile_index", 1) > 1:
+            if tool_name == "youtube_launch" and user_profile and user_profile.get("youtube_account_name"):
+                from app.services.youtube_ocr import detect_and_find_youtube_account
+                from app.services.adb import press_key, KEY_CODES
+                import time
+                
+                # Launch YouTube first
                 youtube_launch.invoke({})
-                profile_result = select_youtube_profile(
-                    user_profile["youtube_profile_index"]
-                )
+                
+                # Wait for account selection screen to load
+                time.sleep(5)
+                
+                # Navigate to account selection area (left sidebar, then up to top)
+                press_key(KEY_CODES["left"])
+                time.sleep(0.5)
+                for _ in range(8):
+                    press_key(KEY_CODES["up"])
+                    time.sleep(0.2)
+                
+                # Press right to enter account selection - this should show "誰在觀看" screen
+                press_key(KEY_CODES["right"])
+                time.sleep(2)  # Wait for account selection screen to fully load
+                
+                # NOW take screenshot and detect accounts
+                target_name = user_profile["youtube_account_name"]
+                position, detected = detect_and_find_youtube_account(target_name)
+                
+                if position:
+                    # We're currently on the first account (after pressing right)
+                    # Need to move right (position - 1) times to reach target
+                    for _ in range(position - 1):
+                        press_key(KEY_CODES["right"])
+                        time.sleep(0.3)
+                    press_key(KEY_CODES["ok"])
+                    time.sleep(2)
+                    result_msg = f"✓ 已啟動 YouTube 並選擇帳號 {target_name} (位置 {position}, 偵測到: {detected})"
+                else:
+                    # If not found, just press ok on current account
+                    press_key(KEY_CODES["ok"])
+                    result_msg = f"✗ 找不到帳號 {target_name}。偵測到: {detected}"
+                
                 tool_results.append({
                     "tool": tool_name,
                     "args": tool_args,
-                    "result": f"✓ 已啟動 YouTube 並 {profile_result}"
+                    "result": result_msg
                 })
                 continue
             

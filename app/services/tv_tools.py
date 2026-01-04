@@ -284,8 +284,8 @@ def tv_current_app() -> str:
 
 
 # ==================== All Tools ====================
+# Note: tv_connect, tv_disconnect, tv_status 已移除，連線現在是自動的
 ALL_TOOLS = [
-    tv_connect, tv_disconnect, tv_status,
     tv_remote, tv_navigate, tv_volume, tv_power, tv_input_source,
     play_pause, rewind, fast_forward, stop_playback,
     youtube_launch, youtube_close, youtube_search, youtube_play, youtube_channel, youtube_navigate,

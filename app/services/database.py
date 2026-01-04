@@ -25,7 +25,7 @@ async def init_db():
                 user_id VARCHAR(50) UNIQUE NOT NULL,
                 netflix_profile_index INT DEFAULT 1,
                 netflix_pin VARCHAR(10),
-                youtube_profile_index INT DEFAULT 1,
+                youtube_account_name VARCHAR(100),
                 created_at TIMESTAMP DEFAULT NOW(),
                 updated_at TIMESTAMP DEFAULT NOW()
             )

@@ -40,6 +40,17 @@ def adb_command(cmd: str, capture_output: bool = False) -> str | None:
         return None
 
 
+def ensure_connection() -> bool:
+    """確保 ADB 連線，如果未連線則自動連線"""
+    devices = adb_command("devices", capture_output=True) or ""
+    if settings.DEVICE_ID in devices:
+        return True
+    
+    # 嘗試連線
+    result = adb_command(f"connect {settings.DEVICE_ID}", capture_output=True)
+    return result and ("connected" in result.lower() or "already connected" in result.lower())
+
+
 def press_key(keycode: int) -> None:
     """按下指定按鍵"""
     adb_command(f"shell input keyevent {keycode}")
@@ -80,31 +91,32 @@ def select_youtube_profile(profile_index: int) -> str:
     選擇 YouTube 帳號
     
     YouTube TV 帳號切換流程：
-    1. 打開 YouTube 後等待載入
-    2. 進入帳號選擇畫面
-    3. 用左右鍵選擇帳號
-    4. 按確認
+    1. 載入完成後按 left 進入側邊欄
+    2. 按 up 8 次確保在最上方
+    3. 按 right 進入帳號區域（第一個帳號）
+    4. 按 right 選擇第 N 個帳號
     """
-    time.sleep(3)  # 等待 YouTube 載入
+    time.sleep(4)  # 等待 YouTube 完全載入
     
-    # 移動到左側欄的帳號圖標（通常在最下方）
+    # 進入側邊欄
     press_key(KEY_CODES["left"])
     time.sleep(0.3)
     
-    # 按多次 down 移動到帳號圖標
+    # 按 up 8 次確保在最上方
     for _ in range(8):
-        press_key(KEY_CODES["down"])
+        press_key(KEY_CODES["up"])
         time.sleep(0.2)
     
-    # 選擇進入帳號切換
-    press_key(KEY_CODES["ok"])
-    time.sleep(1)
+    # 按 right 進入帳號區域 (這時就是第一個帳號)
+    press_key(KEY_CODES["right"])
+    time.sleep(0.3)
     
-    # 選擇正確的帳號 (左右排列，profile_index 從 1 開始)
+    # 選擇第 N 個帳號 (profile_index=1 不需要再按 right)
     for _ in range(profile_index - 1):
         press_key(KEY_CODES["right"])
         time.sleep(0.3)
     
+    # 確認選擇
     press_key(KEY_CODES["ok"])
     time.sleep(2)
     

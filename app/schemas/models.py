@@ -21,11 +21,11 @@ class ProfileCreate(BaseModel):
     user_id: str
     netflix_profile_index: int = 1
     netflix_pin: Optional[str] = None
-    youtube_profile_index: int = 1  # YouTube 帳號位置 (從上往下數)
+    youtube_account_name: Optional[str] = None  # YouTube 帳號名稱 (用 OCR 辨識)
 
 
 class ProfileResponse(BaseModel):
     user_id: str
     netflix_profile_index: int
     netflix_pin: Optional[str] = None
-    youtube_profile_index: int = 1
+    youtube_account_name: Optional[str] = None
