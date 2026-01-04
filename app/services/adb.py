@@ -57,16 +57,20 @@ def select_netflix_profile(profile_index: int, pin: str | None = None) -> str:
     """選擇 Netflix profile 並輸入 PIN"""
     time.sleep(3)
     
+    # 移動到正確的 profile (預設焦點在第一個)
     for _ in range(profile_index - 1):
-        press_key(KEY_CODES["right"])
+        press_key(KEY_CODES["down"])
         time.sleep(0.3)
     
+    # 選擇 profile
     press_key(KEY_CODES["ok"])
-    time.sleep(1)
     
+    # 如果有 PIN，等待 PIN 輸入畫面並輸入
     if pin:
-        time.sleep(1)
+        time.sleep(2)  # 等待 PIN 輸入畫面載入
         enter_pin(pin)
-        press_key(KEY_CODES["ok"])
+        # Netflix 會在輸入完 4 位數後自動確認，不需要按 OK
     
+    time.sleep(2)  # 等待進入首頁
     return f"✓ 已選擇第 {profile_index} 個 profile"
+
