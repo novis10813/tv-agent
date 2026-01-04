@@ -1,11 +1,11 @@
 # Agentic TV Controller
 
-透過自然語言控制 Android TV 的 webhook 服務。
+透過自然語言控制 Android TV - 整合版（不需要 MCP Server）
 
 ## 架構
 
 ```
-iPhone Shortcuts → Webhook (POST /command) → LiteLLM → MCP Client → Android TV
+iPhone Shortcuts → POST /command → LangChain + LiteLLM → ADB → 電視
 ```
 
 ## 快速開始
@@ -14,28 +14,16 @@ iPhone Shortcuts → Webhook (POST /command) → LiteLLM → MCP Client → Andr
 
 ```bash
 cp .env.example .env
-# 編輯 .env，填入你的 LITELLM_API_KEY
+nano .env  # 填入 LITELLM_API_KEY
 ```
 
-### 2. 啟動 Android TV MCP Server
+### 2. 啟動服務
 
 ```bash
-cd /home/novis/docker/androidtv
 uv run server.py
 ```
 
-### 3. 啟動 Agentic Controller
-
-```bash
-cd /home/novis/docker/agentic_tv_controller
-uv run server.py
-```
-
-## API
-
-### POST /command
-
-發送自然語言指令：
+### 3. 測試
 
 ```bash
 curl -X POST http://localhost:8000/command \
@@ -43,47 +31,37 @@ curl -X POST http://localhost:8000/command \
   -d '{"text": "打開 YouTube"}'
 ```
 
-回應：
+## API
+
+### POST /command
 ```json
-{
-  "success": true,
-  "message": "✓ 已啟動 YouTube",
-  "tool_calls": [
-    {"tool": "youtube_launch", "args": {}, "result": "✓ 已啟動 YouTube"}
-  ]
-}
+{"text": "你的指令"}
 ```
 
 ### GET /health
-
-健康檢查：
-```bash
-curl http://localhost:8000/health
-```
+健康檢查
 
 ### GET /tools
+列出所有 tools
 
-列出可用 tools：
-```bash
-curl http://localhost:8000/tools
-```
+## 可用的 26 個 Tools
 
-## iPhone Shortcuts 設定
+**連線**: tv_connect, tv_disconnect, tv_status
 
-1. 打開 Shortcuts App
-2. 新增 Shortcut
-3. 加入 "Get Contents of URL" 動作
-4. URL: `http://你的伺服器IP:8000/command`
-5. Method: POST
-6. Request Body: JSON `{"text": "你的指令"}`
+**遙控器**: tv_remote, tv_navigate, tv_volume, tv_power, tv_input_source
 
-## 環境變數
+**媒體**: play_pause, rewind, fast_forward, stop_playback
 
-| 變數 | 說明 |
-|------|------|
-| `LITELLM_BASE_URL` | LiteLLM proxy URL |
-| `LITELLM_API_KEY` | API Key |
-| `LITELLM_MODEL` | 模型名稱 |
-| `MCP_SERVER_URL` | Android TV MCP Server URL |
-| `HOST` | 綁定地址 (預設 0.0.0.0) |
-| `PORT` | 連接埠 (預設 8000) |
+**YouTube**: youtube_launch, youtube_close, youtube_search, youtube_play, youtube_channel, youtube_navigate
+
+**Netflix**: netflix_launch, netflix_close, netflix_search, netflix_play, netflix_navigate
+
+**工具**: tv_screenshot, tv_input_text, tv_current_app
+
+## iPhone Shortcuts
+
+1. 新增 Shortcut
+2. 加入 "Get Contents of URL"
+3. URL: `http://你的IP:8000/command`
+4. Method: POST
+5. Body: `{"text": "輸入指令"}`

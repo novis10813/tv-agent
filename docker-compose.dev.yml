@@ -1,0 +1,40 @@
+services:
+  # 開發用 PostgreSQL（獨立於 core-postgres）
+  dev-postgres:
+    image: postgres:17-alpine
+    container_name: tv-controller-dev-postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=devpassword
+      - POSTGRES_DB=tv_controller_db
+    ports:
+      - "5433:5432"  # 用 5433 避免和 core-postgres 衝突
+    volumes:
+      - tv-controller-dev-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Agentic TV Controller
+  agentic-tv-controller:
+    build: .
+    container_name: agentic-tv-controller-dev
+    environment:
+      - LITELLM_BASE_URL=${LITELLM_BASE_URL:-http://litellm.homelab.com}
+      - LITELLM_API_KEY=${LITELLM_API_KEY}
+      - LITELLM_MODEL=${LITELLM_MODEL:-gpt-4o-mini}
+      - ANDROID_TV_IP=${ANDROID_TV_IP:-192.168.0.64}
+      - DATABASE_URL=postgresql://postgres:devpassword@dev-postgres:5432/tv_controller_db
+      - HOST=0.0.0.0
+      - PORT=8000
+    ports:
+      - "8000:8000"
+    depends_on:
+      dev-postgres:
+        condition: service_healthy
+    # 注意：需要安裝 adb 在 container 內
+
+volumes:
+  tv-controller-dev-data:
