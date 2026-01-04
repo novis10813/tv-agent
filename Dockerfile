@@ -7,10 +7,10 @@ WORKDIR /app
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 
 # Copy dependency files
-COPY pyproject.toml uv.lock ./
+COPY pyproject.toml ./
 
 # Create virtual environment and install dependencies
-RUN uv sync --frozen --no-install-project
+RUN uv venv && uv pip install -e .
 
 # Runtime stage
 FROM python:3.13-slim
