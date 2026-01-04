@@ -6,7 +6,7 @@ import asyncpg
 from fastapi import APIRouter, HTTPException
 
 from app.schemas.models import ProfileCreate, ProfileResponse
-from app.services.database import db_pool, get_user_profile
+from app.services.database import get_pool, get_user_profile
 
 router = APIRouter()
 
@@ -14,10 +14,11 @@ router = APIRouter()
 @router.get("", response_model=list[ProfileResponse])
 async def list_profiles():
     """列出所有使用者 profiles"""
-    if not db_pool:
+    pool = get_pool()
+    if not pool:
         raise HTTPException(status_code=503, detail="Database not connected")
     
-    async with db_pool.acquire() as conn:
+    async with pool.acquire() as conn:
         rows = await conn.fetch("SELECT user_id, netflix_profile_index, netflix_pin FROM user_profiles")
         return [dict(row) for row in rows]
 
@@ -34,10 +35,11 @@ async def get_profile(user_id: str):
 @router.post("", response_model=ProfileResponse)
 async def create_profile(profile: ProfileCreate):
     """新增使用者 profile"""
-    if not db_pool:
+    pool = get_pool()
+    if not pool:
         raise HTTPException(status_code=503, detail="Database not connected")
     
-    async with db_pool.acquire() as conn:
+    async with pool.acquire() as conn:
         try:
             await conn.execute(
                 """
@@ -54,10 +56,11 @@ async def create_profile(profile: ProfileCreate):
 @router.put("/{user_id}", response_model=ProfileResponse)
 async def update_profile(user_id: str, profile: ProfileCreate):
     """更新使用者 profile"""
-    if not db_pool:
+    pool = get_pool()
+    if not pool:
         raise HTTPException(status_code=503, detail="Database not connected")
     
-    async with db_pool.acquire() as conn:
+    async with pool.acquire() as conn:
         result = await conn.execute(
             """
             UPDATE user_profiles 
@@ -74,10 +77,11 @@ async def update_profile(user_id: str, profile: ProfileCreate):
 @router.delete("/{user_id}")
 async def delete_profile(user_id: str):
     """刪除使用者 profile"""
-    if not db_pool:
+    pool = get_pool()
+    if not pool:
         raise HTTPException(status_code=503, detail="Database not connected")
     
-    async with db_pool.acquire() as conn:
+    async with pool.acquire() as conn:
         result = await conn.execute("DELETE FROM user_profiles WHERE user_id = $1", user_id)
         if result == "DELETE 0":
             raise HTTPException(status_code=404, detail=f"Profile '{user_id}' not found")

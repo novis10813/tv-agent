@@ -8,6 +8,11 @@ from app.config import settings
 db_pool: asyncpg.Pool | None = None
 
 
+def get_pool() -> asyncpg.Pool | None:
+    """Get the current database pool"""
+    return db_pool
+
+
 async def init_db():
     """Initialize database and create tables"""
     global db_pool
@@ -35,12 +40,14 @@ async def close_db():
 
 async def get_user_profile(user_id: str) -> dict | None:
     """Get user profile from database"""
-    if not db_pool:
+    pool = get_pool()
+    if not pool:
         return None
-    async with db_pool.acquire() as conn:
+    async with pool.acquire() as conn:
         row = await conn.fetchrow(
             "SELECT * FROM user_profiles WHERE user_id = $1", user_id
         )
         if row:
             return dict(row)
     return None
+
