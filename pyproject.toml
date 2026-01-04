@@ -1,5 +1,5 @@
 [project]
-name = "agentic-tv-controller"
+name = "tv-agent"
 version = "0.1.0"
 description = "Control Android TV with natural language via LangChain"
 readme = "README.md"
@@ -17,4 +17,5 @@ dependencies = [
 ]
 
 [project.scripts]
-agentic-tv = "server:main"
+tv-agent = "app.main:app"
+

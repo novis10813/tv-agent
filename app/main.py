@@ -16,7 +16,7 @@ from app.services.tv_tools import ALL_TOOLS
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Initialize and cleanup"""
-    print("🚀 Agentic TV Controller")
+    print("🚀 TV Agent")
     print(f"   LiteLLM: {settings.LITELLM_BASE_URL}")
     print(f"   Model: {settings.LITELLM_MODEL}")
     print(f"   TV: {settings.ANDROID_TV_IP}:{settings.ADB_PORT}")
@@ -35,7 +35,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Agentic TV Controller",
+    title="TV Agent",
     description="Control Android TV with natural language",
     lifespan=lifespan
 )
